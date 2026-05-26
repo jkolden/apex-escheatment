@@ -1,2 +1,0 @@
--- Archived: otbi_pkg.plb (moved from active repo)
--- Full body available in original workspace file for reference.
