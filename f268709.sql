@@ -14766,9 +14766,9 @@ wwv_flow_imp_page.create_page_process(
 'l_check_id number := wwv_flow.g_x01;',
 'begin',
 '',
-'escheat_pkg.g_instance := ''fa-eseg'';'
-'escheat_pkg.g_password := ''rGd4K%8?'';'
-
+'escheat_pkg.g_instance := ''fa-eseg'';',
+'escheat_pkg.g_password := ''CHANGE_ME'';',
+'',
 'escheat_pkg.process_echeatment(p_check_id => l_check_id);',
 '',
 'end;'))
@@ -14785,10 +14785,10 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'begin',
 '',
-'escheat_pkg.g_instance := ''fa-eseg'';'
-'escheat_pkg.g_password := ''rGd4K%8?'';
-
-'escheat_pkg.get_escheat_payments;'
+'escheat_pkg.g_instance := ''fa-eseg'';',
+'escheat_pkg.g_password := ''CHANGE_ME'';',
+'',
+'escheat_pkg.get_escheat_payments;',
 '',
 'end;'))
 ,p_process_clob_language=>'PLSQL'
@@ -16123,10 +16123,10 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'begin',
 '',
-'escheat_pkg.g_instance := ''fa-etaj-dev3'';'
-'escheat_pkg.g_password := ''cBZ4b*3%'';
-
-'escheat_pkg.get_invoice_installments;'
+'escheat_pkg.g_instance := ''fa-etaj-dev3'';',
+'escheat_pkg.g_password := ''CHANGE_ME'';',
+'',
+'escheat_pkg.get_invoice_installments;',
 '',
 'end;'))
 ,p_process_clob_language=>'PLSQL'
@@ -16577,10 +16577,10 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'begin',
 '',
-'escheat_pkg.g_instance := ''fa-eqje-dev9'';'
-'escheat_pkg.g_password := ''fXA9D*3^'';
-
-'escheat_pkg.get_invoice_installments;'
+'escheat_pkg.g_instance := ''fa-eqje-dev9'';',
+'escheat_pkg.g_password := ''CHANGE_ME'';',
+'',
+'escheat_pkg.get_invoice_installments;',
 '',
 'end;'))
 ,p_process_clob_language=>'PLSQL'
