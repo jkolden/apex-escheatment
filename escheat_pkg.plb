@@ -178,8 +178,8 @@ create or replace package body escheat_pkg is
         ) s
         on (d.invoice_id = s.invoice_id and d.installment_number = s.installment_number)
         when not matched then
-            insert (d.id, d.invoice_date, d.terms_date, d.invoice_id, d.installment_number, d.supplier_name, d.taxpayer_id, d.invoice_number, d.gross_amount, d.payment_status, d.address_name, d.supplier_number)
-            values (generic_seq.nextval, to_date(s.invoice_date, 'YYYY-MM-DD'), to_date(s.terms_date, 'YYYY-MM-DD'), s.invoice_id, s.installment_number, s.supplier_name, s.taxpayer_id, s.invoice_number, s.gross_amount, s.payment_status, s.address_name, s.supplier_number);
+            insert (d.invoice_date, d.terms_date, d.invoice_id, d.installment_number, d.supplier_name, d.taxpayer_id, d.invoice_number, d.gross_amount, d.payment_status, d.address_name, d.supplier_number)
+            values (to_date(s.invoice_date, 'YYYY-MM-DD'), to_date(s.terms_date, 'YYYY-MM-DD'), s.invoice_id, s.installment_number, s.supplier_name, s.taxpayer_id, s.invoice_number, s.gross_amount, s.payment_status, s.address_name, s.supplier_number);
     end get_invoice_installments;
 
     procedure get_escheat_payments is
@@ -225,9 +225,7 @@ create or replace package body escheat_pkg is
                    to_date(r.check_date, 'YYYY-MM-DD') check_date,
                    r.supplier_number,
                    r.bu_name,
-                   r.payment_status,
-                   r.supplier_id,
-                   r.supplier_site_id
+                   r.payment_status
             from XMLTable(
                      XMLNamespaces(
                        'http://schemas.xmlsoap.org/soap/envelope/' AS "SOAP-ENV",
@@ -251,17 +249,15 @@ create or replace package body escheat_pkg is
                          check_date         PATH 'Column4',
                          supplier_number    PATH 'Column14',
                          bu_name            PATH 'Column10',
-                         payment_status     PATH 'Column15',
-                         supplier_id        PATH 'Column16',
-                         supplier_site_id   PATH 'Column17'
+                         payment_status     PATH 'Column15'
                  ) r
         ) s
         on (d.invoice_id = s.invoice_id and d.check_id = s.check_id)
         when matched then
             update set d.payment_status = s.payment_status
         when not matched then
-            insert (d.invoice_id, d.invoice_date, d.invoice_number, d.check_id, d.payment_amount, d.supplier_name, d.supplier_site_name, d.check_number, d.check_date, d.supplier_number, d.bu_name, d.payment_status, d.supplier_id, d.supplier_site_id)
-            values (s.invoice_id, s.invoice_date, s.invoice_number, s.check_id, s.payment_amount, s.supplier_name, s.supplier_site_name, s.check_number, s.check_date, s.supplier_number, s.bu_name, s.payment_status, s.supplier_id, s.supplier_site_id);
+            insert (d.invoice_id, d.invoice_date, d.invoice_number, d.check_id, d.payment_amount, d.supplier_name, d.supplier_site_name, d.check_number, d.check_date, d.supplier_number, d.bu_name, d.payment_status)
+            values (s.invoice_id, s.invoice_date, s.invoice_number, s.check_id, s.payment_amount, s.supplier_name, s.supplier_site_name, s.check_number, s.check_date, s.supplier_number, s.bu_name, s.payment_status);
     end get_escheat_payments;
 
     -- get_bek_escheat_payments removed (not used by the APEX app)
@@ -274,8 +270,8 @@ create or replace package body escheat_pkg is
 
     procedure log_api_results(p_action IN varchar2, p_api_fire_date IN date, p_api IN varchar2, p_status_code IN number, p_response_payload IN clob default null) is
     begin
-        insert into com_api_log (batch_id, seq_id, action, api_fire_date, api, status_code, response_payload)
-        values (g_batch_id, api_seq.nextval, p_action, p_api_fire_date, p_api, p_status_code, p_response_payload);
+        insert into com_api_log (batch_id, action, api_fire_date, api, status_code, response_payload)
+        values (g_batch_id, p_action, p_api_fire_date, p_api, p_status_code, p_response_payload);
     end log_api_results;
 
     procedure void_payment(p_check_id IN number) is
@@ -284,7 +280,7 @@ create or replace package body escheat_pkg is
         l_response clob;
         l_void_date varchar2(10);
     begin
-        l_url := 'https://' || g_instance || '-saasfademo1.ds-fa.oraclepdemos.com/fscmRestApi/resources/11.13.18.05/payablesPayments/' || p_check_id;
+        l_url := 'https://' || g_instance || g_domain || '/fscmRestApi/resources/11.13.18.05/payablesPayments/' || p_check_id;
         l_void_date := to_char(sysdate, 'YYYY-MM-DD');
 
         apex_json.initialize_clob_output;
@@ -319,7 +315,7 @@ create or replace package body escheat_pkg is
         l_post_payload clob;
         l_response clob;
     begin
-        l_url := 'https://' || g_instance || '-saasfademo1.ds-fa.oraclepdemos.com/fscmRestApi/resources/11.13.18.05/invoices/' || p_invoice_id;
+        l_url := 'https://' || g_instance || g_domain || '/fscmRestApi/resources/11.13.18.05/invoices/' || p_invoice_id;
 
         apex_json.initialize_clob_output;
         apex_json.open_object;
@@ -353,7 +349,7 @@ create or replace package body escheat_pkg is
         l_response clob;
     begin
         select invoice_id into l_invoice_id from com_invoices where id = p_id;
-        l_url := 'https://' || g_instance || '-saasfademo1.ds-fa.oraclepdemos.com/fscmRestApi/resources/11.13.18.05/invoices/' || l_invoice_id || '/child/invoiceLines';
+        l_url := 'https://' || g_instance || g_domain || '/fscmRestApi/resources/11.13.18.05/invoices/' || l_invoice_id || '/child/invoiceLines';
 
         apex_json.initialize_clob_output;
         apex_json.open_object;
@@ -382,8 +378,8 @@ create or replace package body escheat_pkg is
             using (select l_invoice_id invoice_id, 1 installment_number, -15 amount, sysdate creation_date from dual) s
             on (d.invoice_id = s.invoice_id and d.installment_number = s.installment_number)
             when not matched then
-                insert (d.id, d.invoice_id, d.installment_number, d.amount, d.creation_date)
-                values (generic_seq.nextval, s.invoice_id, s.installment_number, s.amount, s.creation_date);
+                insert (d.invoice_id, d.installment_number, d.amount, d.creation_date)
+                values (s.invoice_id, s.installment_number, s.amount, s.creation_date);
         else
             log_api_results(p_action => 'POST', p_api_fire_date => sysdate, p_api => 'create invoice line', p_status_code => apex_web_service.g_status_code, p_response_payload => l_response);
         end if;
@@ -399,10 +395,10 @@ create or replace package body escheat_pkg is
         l_param_names(1)  := 'q';
         l_param_values(1) := 'SupplierNumber=' || p_supplier_number;
 
-        l_url := 'https://' || g_instance || '-saasfademo1.ds-fa.oraclepdemos.com/fscmRestApi/resources/11.13.18.05/suppliers';
+        l_url := 'https://' || g_instance || g_domain || '/fscmRestApi/resources/11.13.18.05/suppliers';
 
         apex_web_service.g_request_headers(1).name  := 'REST-Framework-Version';
-        apex_web_service.g_request_headers(1).value := 2;
+        apex_web_service.g_request_headers(1).value := '2';
 
         l_response := apex_web_service.make_rest_request(
             p_url         => l_url,
@@ -429,7 +425,7 @@ create or replace package body escheat_pkg is
         l_supplier_site_id number;
         l_url varchar2(400);
     begin
-        l_url := 'https://' || g_instance || '-saasfademo1.ds-fa.oraclepdemos.com/fscmRestApi/resources/11.13.18.05/suppliers/' || p_supplier_id || '/child/sites';
+        l_url := 'https://' || g_instance || g_domain || '/fscmRestApi/resources/11.13.18.05/suppliers/' || p_supplier_id || '/child/sites';
 
         apex_web_service.g_request_headers(1).name  := 'Content-Type';
         apex_web_service.g_request_headers(1).value := 'application/json';
@@ -458,7 +454,7 @@ create or replace package body escheat_pkg is
         l_response clob;
         l_date varchar2(10);
     begin
-        l_url := 'https://' || g_instance || '-saasfademo1.ds-fa.oraclepdemos.com/fscmRestApi/resources/11.13.18.05/suppliers/' || p_supplier_id || '/child/sites/' || p_supplier_site_id || '/child/thirdPartyPaymentRelationships';
+        l_url := 'https://' || g_instance || g_domain || '/fscmRestApi/resources/11.13.18.05/suppliers/' || p_supplier_id || '/child/sites/' || p_supplier_site_id || '/child/thirdPartyPaymentRelationships';
         l_date := to_char(p_check_date, 'YYYY-MM-DD');
 
         apex_json.initialize_clob_output;
@@ -496,7 +492,7 @@ create or replace package body escheat_pkg is
         l_response clob;
         l_installment_url varchar2(400);
     begin
-        l_url := 'https://' || g_instance || '-saasfademo1.ds-fa.oraclepdemos.com/fscmRestApi/resources/11.13.18.05/invoices/' || p_invoice_id || '/child/invoiceInstallments';
+        l_url := 'https://' || g_instance || g_domain || '/fscmRestApi/resources/11.13.18.05/invoices/' || p_invoice_id || '/child/invoiceInstallments';
 
         l_response := apex_web_service.make_rest_request(
             p_url         => l_url,
@@ -605,18 +601,19 @@ create or replace package body escheat_pkg is
             p_password => g_password
           );
 
-          IF apex_web_service.g_status_code IN (204) THEN
+          if apex_web_service.g_status_code in (204) then
             log_api_results(p_action => 'DELETE', p_api_fire_date => sysdate, p_api => 'delete installment', p_status_code => apex_web_service.g_status_code);
-        ELSE
+        else
             log_api_results(p_action => 'DELETE', p_api_fire_date => sysdate, p_api => 'delete installment', p_status_code => apex_web_service.g_status_code, p_response_payload =>
             l_response);
-        END IF;
+        end if;
     end delete_installment;
 
     procedure process_echeatment(p_check_id IN number) is
         l_supplier_number varchar2(25);
         l_supplier_id number;
         l_supplier_site_id number;
+        l_invoice_id number;
         l_installment_url varchar2(400);
         l_check_date date;
     begin
