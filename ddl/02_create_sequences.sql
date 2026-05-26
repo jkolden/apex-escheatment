@@ -1,0 +1,31 @@
+-- Create sequences used by existing code (kept for compatibility)
+BEGIN
+  BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE api_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -955 THEN RAISE; END IF; -- ignore ORA-00955 if already exists
+  END;
+
+  BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE api_batch_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -955 THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE generic_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -955 THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    EXECUTE IMMEDIATE 'CREATE SEQUENCE otbi_seq START WITH 1 INCREMENT BY 1 NOCACHE NOCYCLE';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLCODE != -955 THEN RAISE; END IF;
+  END;
+END;
+/
+
+-- Notes:
+-- The codebase sometimes calls <sequence>.NEXTVAL explicitly (eg. api_seq.nextval).
+-- We keep these sequences for compatibility while table identity columns auto-populate on INSERT.

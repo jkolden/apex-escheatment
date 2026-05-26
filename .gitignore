@@ -1,0 +1,8 @@
+/.idea/
+.vscode/
+*.log
+*.zip
+*.swp
+*.tmp
+# Ignore local DB export artifacts
+*.dmp

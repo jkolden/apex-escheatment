@@ -1,0 +1,1 @@
+-- Create DBMS_ERRLOG error table for MERGE statements
