@@ -1,38 +1,34 @@
-# Escheatment package — DDL and repo notes
+# Escheatment APEX Application
 
-This folder contains DDL scripts and notes to initialize the database objects used by the escheatment packages.
+Oracle APEX application for processing escheatment payments against Oracle Fusion Cloud.
 
-Files:
+## Files
 
+- `f268709.sql` — APEX 26.1 application export (App 268709).
+- `escheat_pkg.sql` — PL/SQL package specification.
+- `escheat_pkg.plb` — PL/SQL package body.
 - `ddl/00_create_all_tables.sql` — runs all table creation scripts in order.
 - `ddl/01_create_com_invoices.sql` — creates `com_invoices`.
 - `ddl/02_create_escheat_payments.sql` — creates `escheat_payments`.
+- `ddl/02_create_sequences.sql` — creates sequences (`api_seq`, `api_batch_seq`, `generic_seq`).
 - `ddl/03_create_com_api_log.sql` — creates `com_api_log`.
 - `ddl/04_create_com_remittance_fees.sql` — creates `com_remittance_fees`.
-- `ddl/05_create_otbi_billing_events.sql` — creates `otbi_billing_events`.
-- `ddl/06_create_republic_invoices.sql` — creates `republic_invoices`.
-- `ddl/07_create_bek_escheat_payments.sql` — creates `bek_escheat_payments`.
-- `ddl/02_create_sequences.sql` — creates compatibility sequences (`api_seq`, `api_batch_seq`, `generic_seq`, `otbi_seq`) used by existing code that calls `.NEXTVAL`.
 
-Quick start (run as a DBA or schema owner):
+## Quick Start
 
-1. Review and adjust column sizes and types in the per-table scripts under `ddl/` to match your production requirements.
-2. Run the DDL scripts in order:
+Run as the schema owner (e.g. `MYFUSION`):
 
 ```sql
 @ddl/00_create_all_tables.sql
 @ddl/02_create_sequences.sql
-@archive/pjc_errlog.sql
+@escheat_pkg.sql
+@escheat_pkg.plb
 ```
 
-3. If you plan to use Git:
+Then import `f268709.sql` via APEX Application Builder.
 
-```bash
-git init
-git add .
-git commit -m "Initial Escheatment DDL and scripts"
-```
+## Notes
 
-Notes:
-- Tables use `GENERATED ALWAYS AS IDENTITY` so inserts will auto-populate primary keys. Sequences are retained for compatibility with code that explicitly calls `NEXTVAL`.
-- Ensure the schema that runs this code has `EXECUTE` privileges on `APEX_*` packages and appropriate network ACLs for external HTTP(S) calls.
+- Tables use `GENERATED ALWAYS AS IDENTITY` for primary keys.
+- The package requires `EXECUTE` privileges on `APEX_WEB_SERVICE`, `APEX_JSON`, and appropriate network ACLs for HTTPS calls to Oracle Fusion Cloud REST and OTBI SOAP endpoints.
+- Set `escheat_pkg.g_password` at runtime before calling any procedures.
