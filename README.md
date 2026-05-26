@@ -1,6 +1,37 @@
 # Escheatment APEX Application
 
-Oracle APEX application for processing escheatment payments against Oracle Fusion Cloud.
+Oracle APEX application for processing escheatment (unclaimed property) payments against Oracle Fusion Cloud. When payments to suppliers go unclaimed past a statutory holding period, states require the funds be turned over. This app automates that process.
+
+## How It Works
+
+The app has two pages, each driving a distinct workflow:
+
+**Escheatments** — Processes unclaimed disbursements. For a selected payment the app:
+1. Voids the original payment via the Payables Payments REST API
+2. Looks up the supplier and site via the Suppliers REST API
+3. Creates a third-party payment relationship redirecting funds to the state (e.g. City of Boston)
+4. Updates the invoice installment remit-to address
+
+**Third Party Payments** — Processes unpaid invoice installments. For a selected installment the app:
+1. Reduces the invoice header amount by the intercept fee ($15)
+2. Adds a new invoice line for the fee (distribution: `1150-2022-92340-44760-1000-0000-00000000`)
+3. Creates a third-party payment relationship redirecting the remaining balance to the state
+4. Updates the installment with the new amount and remit-to address
+
+Both workflows pull data from Fusion Cloud via OTBI SOAP queries and write back via Fusion REST APIs. All API calls are logged to `com_api_log` with batch IDs for traceability.
+
+## Configuration
+
+Set these package variables per environment before calling any procedures:
+
+| Variable | Purpose | Example |
+|----------|---------|---------|
+| `g_instance` | Fusion Cloud instance name | `fa-eseg` |
+| `g_domain` | Fusion Cloud domain suffix | `-saasfademo1.ds-fa.oraclepdemos.com` |
+| `g_user` | OTBI session user | `gia.roberts` |
+| `g_password` | Fusion Cloud password | *(set at runtime)* |
+| `g_payables_user` | User for Payables REST calls | `gia.roberts` |
+| `g_purchasing_user` | User for Suppliers REST calls | `eleanor.white` |
 
 ## Files
 
